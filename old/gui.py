@@ -160,7 +160,7 @@ class Gui(ttk.Frame):
             value=value
         )
 
-    def create_button(self, text, command, underline=None, enabled=True):
+    def create_button(self, text, command, underline=None, enabled=True, style=None):
         """Create and return a button widget with an accelerator key 
         binding. Underline the character with index underline (indicates
         the accelerator key) and bind an accelerator key event to the 
@@ -171,7 +171,8 @@ class Gui(ttk.Frame):
             master=self.master,
             text=text,
             underline=underline,
-            command=command
+            command=command,
+            style=style
         )
         if not enabled:
             btn.disable()

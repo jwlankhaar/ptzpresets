@@ -10,7 +10,7 @@
     {
         "cameraname"  : "Camera R",
         "ip": "192.168.2.23", 
-        "port": 10000,
+        "port": 10001,
         "user": "", 
         "password": "",
         "wsdl_dir": "venv/Lib/site-packages/wsdl"
