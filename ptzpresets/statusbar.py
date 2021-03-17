@@ -15,38 +15,29 @@ class Statusbar(ttk.Label):
 
         Property:
         - text: the status bar text.
-
     """
     def __init__(self, master, *args, **kwargs):
-        super().__init__(*args, **kwargs)        
-        self.master=master
+        super().__init__(
+            master=master, 
+            style='SmallTextLeft.TLabel', 
+            *args, **kwargs
+        )        
         self['background'] = 'white'
-        self.place(
-            relx=0, 
-            rely=1.0, 
-            x=0, 
-            y=0, 
-            relwidth=1.0, 
-            anchor=tk.SW
-        )
         self.message = ''
-        self.status_text = tk.StringVar(master=self.master)
-        self.config(textvariable=self.status_text)
+        self.display_text = tk.StringVar(master=self.master)
+        self.config(textvariable=self.display_text)
 
     def update(self, message):
         self.message = message
-        self.status_text.set(f'  {message}')
-        self.update_idletasks()
+        self.display_text.set(f'{message}')
 
-    def alert(self, message, duration_seconds=1):
+    def alert(self, message, duration_seconds=2):
         """Show a message for a short period of time and reset the
         status bar text to its original text.
         """
         current_text = self.message
         self.update(message)
-        import time
-        time.sleep(duration_seconds)
-        self.update(current_text)
+        self.after(duration_seconds*1000, lambda: self.update(current_text))
 
     def clear(self):
         self.update(message='')

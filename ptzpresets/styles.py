@@ -4,31 +4,49 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.font
 
+from pathlib import Path
 
+# Instantiate style manager.
+style = ttk.Style()
+
+def system_font():
+    """Return default font on the system. Use name system_font
+    to avoid naming conflict with default font."""
+    return tk.font.nametofont('TkDefaultFont')
 
 def get_default_font_family():
-    root = tk.Tk()
-    default_font = tkinter.font.nametofont('TkDefaultFont')
-    font_family = default_font.actual()['family']
-    root.destroy()
-    return font_family
+    return system_font().actual()['family']
 
-
-# Character width: https://stackoverflow.com/a/30954325
 def get_character_width_pixels():
-    root = tk.Tk()
-    default_font = tkinter.font.nametofont('TkDefaultFont')
-    width_pixels = default_font.measure('0')
-    root.destroy()
-    return width_pixels
+    """Get character width in pixels of default font."""
+    return system_font().measure('0')
+    # https://stackoverflow.com/a/30954325
 
 DEFAULT_FONT = get_default_font_family()
 CHAR_WIDTH_PX = get_character_width_pixels()
 
-stl_btn_fixed_width_small_text_left = ttk.Style()
-stl_btn_fixed_width_small_text_left.configure(
-    'ButtonFixedWidthSmallTextLeft.TButton',
+APP_DIR = Path.cwd()
+STATIC_DIR = APP_DIR / 'static'
+
+APP_ICON = STATIC_DIR / 'ptzpresets-icon.ico'
+
+BUTTON_ADD_PRESET_DEFAULT = tk.PhotoImage(file=(STATIC_DIR / 'button_add_preset_default.png'))
+BUTTON_ADD_PRESET_HOVER = tk.PhotoImage(file=(STATIC_DIR / 'button_add_preset_hover.png'))
+
+
+# ----- Styles ---------------------------------------------------------------
+
+# Fonts
+
+# Buttons
+style.configure('FixedWidthSmallTextLeft.TButton',
     anchor=tk.W,
     width=20,
     font=(DEFAULT_FONT, 8)
+)
+
+# Labels
+style.configure('SmallTextLeft.TLabel',
+    anchor=tk.W,
+    font=(DEFAULT_FONT, 7)
 )
