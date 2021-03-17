@@ -18,6 +18,9 @@ class Camera:
         )
         self.media_service = self.camera.create_media_service()
         self.ptz_service = self.camera.create_ptz_service()
+        self.init_tokens_presets()
+
+    def init_tokens_presets(self):
         self.profile_token = self.get_default_profile_token()
         self.preset_tokens = self.get_preset_tokens()
         self.preset_names = self.get_preset_names()
@@ -39,6 +42,9 @@ class Camera:
     def get_preset_tokens(self):
         return {p['Name']: p['token'] for p in self.get_presets()}
 
+    def refresh(self):
+        self.init_tokens_presets()
+
     def set_preset(self, preset_name=None, preset_token=None):
         # print(f'Set preset to {preset_token=} {preset_name=}')
         return self.ptz_service.SetPreset({
@@ -49,9 +55,10 @@ class Camera:
 
     def goto_preset(self, preset_token):
         # print(f'Going to {preset_token=}')
-        return self.ptz_service.GotoPreset(
-            {'ProfileToken': self.profile_token, 'PresetToken': preset_token}
-        )
+        return self.ptz_service.GotoPreset({
+            'ProfileToken': self.profile_token, 
+            'PresetToken': preset_token
+        })
 
     def rename_preset(self, preset_token, new_name):
         """Rename a preset by going to it and setting it anew with
@@ -63,3 +70,9 @@ class Camera:
         self.goto_preset(preset_token=preset_token)
         self.set_preset(preset_name=new_name, preset_token=preset_token)
         self.preset_names = self.get_preset_names()  # Update preset names list.
+
+    def delete_preset(self, preset_token):
+        return self.ptz_service.RemovePreset({
+            'ProfileToken': self.profile_token,
+            'PresetToken': preset_token
+        })

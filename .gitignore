@@ -2,3 +2,4 @@
 happytime-multi-onvif-server/
 venv/
 *.code-workspace
+build/

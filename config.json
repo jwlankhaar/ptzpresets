@@ -1,18 +1,18 @@
 [
     {
         "cameraname"  : "Camera L",
-        "ip": "192.168.2.4", 
-        "port": 10000,
-        "user": "Gebruiker", 
-        "password": "Beamen2019#",
+        "ip": "192.168.2.23", 
+        "port":  10000,
+        "user": "", 
+        "password": "",
         "wsdl_dir": "venv/Lib/site-packages/wsdl"
     },
     {
         "cameraname"  : "Camera R",
-        "ip": "192.168.2.5", 
-        "port": 10000,
-        "user": "Gebruiker", 
-        "password": "Beamen2019#",
+        "ip": "192.168.2.23", 
+        "port": 10001,
+        "user": "", 
+        "password": "",
         "wsdl_dir": "venv/Lib/site-packages/wsdl"
     }
 ]

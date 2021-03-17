@@ -1,6 +1,5 @@
 #coding: utf-8
 
-from os import read
 from ptzpresets.camera import Camera
 from ptzpresets.utils import read_config
 

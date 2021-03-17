@@ -41,7 +41,6 @@ def on_control_click(event, button):
 def rename_preset(event, textvar, preset_token, entry, button):
     btn['text'] = textvar.get()
     print(f'{preset_token}: {textvar.get()}')
-    #TODO: call rename pre
     # 
     # et here
     entry.destroy()
