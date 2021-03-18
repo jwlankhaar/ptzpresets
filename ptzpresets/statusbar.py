@@ -37,7 +37,7 @@ class Statusbar(ttk.Label):
         """
         current_text = self.message
         self.update(message)
-        self.after(duration_seconds*1000, lambda: self.update(current_text))
+        self.after(duration_seconds*1000, lambda t=current_text: self.update(t))
 
     def clear(self):
         self.update(message='')
