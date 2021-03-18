@@ -5,13 +5,14 @@
 """
 
 import tkinter as tk
-import tkinter.ttk as ttk
 import tkinter.messagebox as tkmsgbox
+import tkinter.ttk as ttk
 
-import ptzpresets.presetbutton as presetbutton
+import ptzpresets.errors as errors
 import ptzpresets.camera as camera
-import ptzpresets.styles as styles
+import ptzpresets.presetbutton as presetbutton
 import ptzpresets.statusbar as statusbar
+import ptzpresets.styles as styles
 
 from pathlib import Path
 
@@ -24,6 +25,7 @@ class Application(ttk.Frame):
     def __init__(self, master=None, config=None, *args, **kwargs):
         super().__init__(master=master, *args, **kwargs)
         self.master.title(APP_TITLE)
+        self.master.iconbitmap(styles.APP_ICON)
         self.config = config
         self.create_cameras()
 
@@ -35,10 +37,19 @@ class Application(ttk.Frame):
         self.position_general_widgets()
 
     def create_cameras(self):
-        self.cameras = [
-            camera.Camera(config=self.config[c]) 
-            for c in self.config
-        ]
+        self.cameras = []
+        for cam_name, cam_config in self.config.items():
+            try:
+                self.cameras.append(
+                    camera.Camera(config=cam_config)
+                )
+            except errors.CouldNotCreateCameraError:
+                tkmsgbox.showerror(
+                    title='Camera initialisation error',
+                    message=(f'Could not connect to camera {cam_name}.\n'
+                             f'Change the configuration and restart PTZ Presets.\n'
+                             f'For now, the camera will be ignored.')
+                )
 
     def create_frames(self):
         self.body = ttk.Frame(master=self.master)

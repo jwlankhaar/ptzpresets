@@ -6,19 +6,28 @@
 
 import onvif
 
+import ptzpresets.errors as errors
+
 class Camera:
     def __init__(self, config):
-        self.name = config['cameraname']
-        self.camera = onvif.ONVIFCamera(
-            host=config['ip'],
-            port=config['port'],
-            wsdl_dir=config['wsdl_dir'],
-            user=config['user'],
-            passwd=config['password']
-        )
+        self._create_camera(config)
         self.media_service = self.camera.create_media_service()
         self.ptz_service = self.camera.create_ptz_service()
         self.init_tokens_presets()
+        self.current_preset_token = None
+
+    def _create_camera(self, config):
+        self.name = config['cameraname']
+        try:
+            self.camera = onvif.ONVIFCamera(
+                host=config['ip'],
+                port=config['port'],
+                wsdl_dir=config['wsdl_dir'],
+                user=config['user'],
+                passwd=config['password']
+            )
+        except:
+            raise errors.CouldNotCreateCameraError
 
     def init_tokens_presets(self):
         self.profile_token = self.get_default_profile_token()
@@ -46,7 +55,6 @@ class Camera:
         self.init_tokens_presets()
 
     def set_preset(self, preset_name=None, preset_token=None):
-        # print(f'Set preset to {preset_token=} {preset_name=}')
         return self.ptz_service.SetPreset({
             'ProfileToken': self.profile_token, 
             'PresetToken': preset_token,
@@ -54,19 +62,19 @@ class Camera:
         })
 
     def goto_preset(self, preset_token):
-        # print(f'Going to {preset_token=}')
+        last_preset_token = self.current_preset_token
+        self.current_preset_token = preset_token
         return self.ptz_service.GotoPreset({
             'ProfileToken': self.profile_token, 
             'PresetToken': preset_token
         })
 
     def rename_preset(self, preset_token, new_name):
-        """Rename a preset by going to it and setting it anew with
+        """Rename a preset by going to it and setting a new with
         a new name. Because the PTZ service does not provide a separate 
         rename function the camera is first moved to the preset so 
         that the new name will not be attached to the wrong position.
         """
-        # print(f'Renaming preset {preset_token=} to {new_name=}')
         self.goto_preset(preset_token=preset_token)
         self.set_preset(preset_name=new_name, preset_token=preset_token)
         self.preset_names = self.get_preset_names()  # Update preset names list.

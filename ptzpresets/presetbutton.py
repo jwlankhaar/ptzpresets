@@ -27,7 +27,7 @@ class PresetButton(ttk.Button):
     camera: camera
         the camera object the button is associated with
     ptz_response_handler: callable
-        callable that handles the response of th PTZ callables
+        callable that handles the response of the PTZ callables
 
     Methods
     -------
@@ -51,7 +51,7 @@ class PresetButton(ttk.Button):
         self.response_handler = response_handler
 
         self.config(style='FixedWidthSmallTextLeft.TButton')
-        self._update_button_text()
+        self._update_button()
 
         self.bind('<Button-1>', self._goto_preset)
         self.bind('<Shift-Button-1>', self._set_preset)
@@ -59,7 +59,7 @@ class PresetButton(ttk.Button):
         self.bind('<Alt-Button-1>', self._delete_preset)
 
     def trigger_rename_preset(self, event=None):
-        """Place a text entry in the button. Set focus to the entry. The entry 
+        """Place a text entry in the button. Set focus to the entry. The entered 
         text will be used as the new preset name. 
         """
         entry_text = tk.StringVar(master=self.master, value=self.preset_name)
@@ -71,7 +71,7 @@ class PresetButton(ttk.Button):
         )
         entry.bind('<FocusIn>', lambda e: e.widget.select_range(start=0, end=tk.END))
         entry.bind('<Return>', lambda e: self._rename_preset(entry=e.widget))
-        entry.bind('<Escape>', lambda e: e.widget.forget())
+        entry.bind('<Escape>', lambda e: self._cancel_rename_preset(entry=e.widget))
         entry.pack(expand=tk.YES, fill=tk.X, side=tk.TOP, anchor=tk.CENTER)
         entry.focus()
 
@@ -89,15 +89,20 @@ class PresetButton(ttk.Button):
                 'preset_token': self.preset_token, 
                 'new_name': self.preset_name}
         )
-        self._update_button_text()
+        self._update_button()
         entry.destroy()
 
-    def _update_button_text(self):
+    def _cancel_rename_preset(self, entry):
+        entry.destroy()
+        self._update_button()
+
+    def _update_button(self):
         """Set the button text formatted as <preset_num> <preset_name>.
         Truncate the preset name if it exceeds 20 characters.
         """ 
         button_text = f'{self.preset_num:02} {self.preset_name:.20}'
-        self.config(text=button_text)
+        style = 'FixedWidthSmallTextLeft.TButton'
+        self.config(style=style, text=button_text)
 
     def _set_preset(self, event):
         response = self.ptz_set_preset(self.preset_name, self.preset_token)
