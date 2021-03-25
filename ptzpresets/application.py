@@ -4,13 +4,14 @@
     Application class that defines the GUI (including its business logic).
 """
 
+from ptzpresets import multibutton
 import tkinter as tk
 import tkinter.messagebox as tkmsgbox
 import tkinter.ttk as ttk
 
 import ptzpresets.errors as errors
 import ptzpresets.camera as camera
-import ptzpresets.presetbutton as presetbutton
+import ptzpresets.controller as controller
 import ptzpresets.statusbar as statusbar
 import ptzpresets.styles as styles
 
@@ -24,32 +25,20 @@ HELP_FILE = Path('static') / 'help.txt'
 class Application(ttk.Frame):
     def __init__(self, master=None, config=None, *args, **kwargs):
         super().__init__(master=master, *args, **kwargs)
+        self.controller = controller.Controller(
+            config=config, 
+            refresh_gui_func=self.refresh,
+            show_status_func=self.show_status
+        )
+
         self.master.title(APP_TITLE)
         self.master.iconbitmap(styles.APP_ICON)
-        self.config = config
-        self.create_cameras()
-
         self.create_frames()
         self.create_camera_widgets()
         self.create_general_widgets()
         self.position_frames()
         self.position_camera_widgets()
         self.position_general_widgets()
-
-    def create_cameras(self):
-        self.cameras = []
-        for cam_name, cam_config in self.config.items():
-            try:
-                self.cameras.append(
-                    camera.Camera(config=cam_config)
-                )
-            except errors.CouldNotCreateCameraError:
-                tkmsgbox.showerror(
-                    title='Camera initialisation error',
-                    message=(f'Could not connect to camera {cam_name}.\n'
-                             f'Change the configuration and restart PTZ Presets.\n'
-                             f'For now, the camera will be ignored.')
-                )
 
     def create_frames(self):
         self.body = ttk.Frame(master=self.master)
@@ -59,27 +48,29 @@ class Application(ttk.Frame):
         self.labels_camera = []
         self.buttons_presets = []
         self.buttons_add_preset = [] 
-        for cam in self.cameras:
+        for cname in self.controller.cameras.keys():
             self.labels_camera.append(
-                ttk.Label(master=self.body, text=cam.name, style='TLabel')
+                ttk.Label(master=self.body, text=cname, style='TLabel')
             )
             self.buttons_presets.append([
-                presetbutton.PresetButton(
-                    master=self.body,
-                    preset_token=cam.preset_tokens[pname],
-                    preset_name=pname,
-                    preset_num=i+1,
-                    camera=cam,
-                    response_handler=self.ptz_response_handler
-                ) for i, pname in enumerate(cam.list_preset_names())
+                multibutton.MultiButton(
+                    master=self.body, 
+                    text=p['name'], 
+                    number=i+1,
+                    default_style='PresetButton.TButton',
+                    highlight_style='Highlighted.PresetButton.TButton',
+                    callback=lambda e, c=cname, t=t: 
+                        self.controller.process_preset_click(e, c, t)
+                ) for i, (t, p) in enumerate(self.controller.presets[cname].items())
             ])
-            self.buttons_add_preset.append(self.create_add_preset_button(cam))
-
-    def create_add_preset_button(self, camera):
+            self.controller.add_buttons_to_presets(cname, self.buttons_presets[-1])
+            self.buttons_add_preset.append(self.create_add_preset_button(cname))
+            
+    def create_add_preset_button(self, camera_key):
         btn = ttk.Label(master=self.body, image=styles.BUTTON_ADD_PRESET_DEFAULT)
-        btn.bind('<Button-1>', lambda e, c=camera: self.add_new_preset(c))
-        btn.bind('<Enter>', lambda e: e.widget.config(image=styles.BUTTON_ADD_PRESET_HOVER))
-        btn.bind('<Leave>', lambda e: e.widget.config(image=styles.BUTTON_ADD_PRESET_DEFAULT))
+        btn.bind('<Button-1>', lambda e, c=camera_key: self.controller.add_preset(e, c))
+        btn.bind('<Enter>', lambda e, i=styles.BUTTON_ADD_PRESET_HOVER: e.widget.config(image=i))
+        btn.bind('<Leave>', lambda e, i=styles.BUTTON_ADD_PRESET_DEFAULT: e.widget.config(image=i))
         return btn
 
     def create_general_widgets(self):
@@ -87,16 +78,16 @@ class Application(ttk.Frame):
             master=self.footer, 
             text=u'\U0001F5D8',
             background='white',
-            style='SmallTextLeft.TLabel',
+            style='Statusbar.TLabel',
             width=3
         )
-        self.button_refresh.bind('<Button-1>', self.refresh_presets)
+        self.button_refresh.bind('<Button-1>', self.refresh)
         self.statusbar = statusbar.Statusbar(master=self.footer)
         self.button_help = ttk.Label(
             master=self.footer,
             text='?',
             background='white',
-            style='SmallTextLeft.TLabel',
+            style='Statusbar.TLabel',
             width=2
         )
         self.button_help.bind('<Button-1>', self.show_help)
@@ -118,29 +109,20 @@ class Application(ttk.Frame):
         self.button_help.grid(row=0, column=2)
         self.statusbar.master.columnconfigure(1, weight=1)  # Stretch statusbar only 
 
-    def add_new_preset(self, camera):
-        preset_token = camera.set_preset()
-        self.refresh_presets(silent=True)
-        preset_button = self._get_preset_button(preset_token)
-        preset_button.trigger_rename_preset()
-
-    def _get_preset_button(self, preset_token):
-        for cbuttons in self.buttons_presets:
-            for btn in cbuttons:
-                if btn.preset_token == preset_token:
-                    return btn
-        
-    def refresh_presets(self, event=None, silent=False):
+    def refresh(self, event=None, silent=False):
         if not silent:
-            self.statusbar.update('Reloading presets...')
+            self.statusbar.update_('Reloading presets...')
         for w in self.body.winfo_children():
             w.destroy()
-        for cam in self.cameras:
+        for cam in self.controller.cameras.values():
             cam.refresh()
         self.create_camera_widgets()
         self.position_camera_widgets()
         if not silent:
-            self.statusbar.update('')
+            self.statusbar.update_('')
+
+    def show_status(self, message):
+        self.statusbar.update_(message)
 
     def show_help(self, event):
         window = tk.Toplevel()
@@ -157,24 +139,4 @@ class Application(ttk.Frame):
         txt_widget.pack(padx=20)
         btn_ok.pack(pady=20)
         
-    def ptz_response_handler(self, camera, action, response, arguments):
-        preset_token = arguments['preset_token']
-        preset_name = camera.preset_names[preset_token]
-        if action == 'goto':
-            self.statusbar.alert(
-                f'{camera.name}: Going to preset {preset_name} ({preset_token})'
-            )
-        elif action == 'set':
-            self.statusbar.alert(
-                f'{camera.name}: Saved current position as {preset_name} ({preset_token})'
-            )
-        elif action == 'rename':
-            self.statusbar.alert(
-                f'{camera.name}: Renamed preset ({preset_token}) to {arguments["new_name"]}'
-            )
-        elif action == 'delete':
-            self.refresh_presets()
-            self.statusbar.alert(
-                f'{camera.name}: Preset {preset_name} ({preset_token}) deleted'
-            )
-
+    

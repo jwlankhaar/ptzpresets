@@ -5,21 +5,33 @@ import tkinter.ttk as ttk
 import ptzpresets.styles as styles
 
 class Statusbar(ttk.Label):
-    """
-        Class that adds a status bar to the current frame.
+    """Subclass of ttk.Label for a statusbar.
 
-        Methods:
-        - update(): Set the status bar text.
-        - alert(): Show a status bar text temporarily.
-        - clear(): Remove the status bar text.
+    Add a status bar to the parent widget.
 
-        Property:
-        - text: the status bar text.
+    Attributes
+    ----------
+    message: string
+        The actual status string of the statusbar.
+    display_text: string
+        What is displayed on the statusbar (may be equal
+        to message or a truncated or differently formatted
+        version of message).
+    
+    Methods
+    -------
+    update_(message): 
+        Set the status bar text.
+    alert(message, duration_seconds=2): 
+        Show a status bar text temporarily. Restore the previous
+        message afterwards.
+    clear(): 
+        Remove the status bar text.
     """
     def __init__(self, master, *args, **kwargs):
         super().__init__(
             master=master, 
-            style='SmallTextLeft.TLabel', 
+            style='Statusbar.TLabel', 
             *args, **kwargs
         )        
         self['background'] = 'white'
@@ -27,7 +39,7 @@ class Statusbar(ttk.Label):
         self.display_text = tk.StringVar(master=self.master)
         self.config(textvariable=self.display_text)
 
-    def update(self, message):
+    def update_(self, message):
         self.message = message
         self.display_text.set(f'{message}')
 
@@ -36,9 +48,9 @@ class Statusbar(ttk.Label):
         status bar text to its original text.
         """
         current_text = self.message
-        self.update(message)
-        self.after(duration_seconds*1000, lambda t=current_text: self.update(t))
+        self.update_(message)
+        self.after(duration_seconds*1000, lambda t=current_text: self.update_(t))
 
     def clear(self):
-        self.update(message='')
+        self.update_(message='')
 

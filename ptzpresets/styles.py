@@ -2,7 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
-import tkinter.font
+import tkinter.font as tkfont
 
 from pathlib import Path
 
@@ -12,7 +12,7 @@ style = ttk.Style()
 def system_font():
     """Return default font on the system. Use name system_font
     to avoid naming conflict with default font."""
-    return tk.font.nametofont('TkDefaultFont')
+    return tkfont.nametofont('TkDefaultFont')
 
 def get_default_font_family():
     return system_font().actual()['family']
@@ -21,6 +21,7 @@ def get_character_width_pixels():
     """Get character width in pixels of default font."""
     return system_font().measure('0')
     # https://stackoverflow.com/a/30954325
+
 
 DEFAULT_FONT = get_default_font_family()
 CHAR_WIDTH_PX = get_character_width_pixels()
@@ -39,14 +40,21 @@ BUTTON_ADD_PRESET_HOVER = tk.PhotoImage(file=(STATIC_DIR / 'button_add_preset_ho
 # Fonts
 
 # Buttons
-style.configure('FixedWidthSmallTextLeft.TButton',
+style.configure('PresetButton.TButton',
     anchor=tk.W,
     width=20,
-    font=(DEFAULT_FONT, 8)
+    font=(DEFAULT_FONT, 9)
 )
 
+style.configure('Highlighted.PresetButton.TButton',
+    font=(DEFAULT_FONT, 9, tkfont.BOLD),
+    foreground='#9a1eb4',
+    width=17
+)
+
+
 # Labels
-style.configure('SmallTextLeft.TLabel',
+style.configure('Statusbar.TLabel',
     anchor=tk.W,
     font=(DEFAULT_FONT, 7)
 )
