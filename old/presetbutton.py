@@ -7,7 +7,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 
-import ptzpresets.styles as styles
+import ptzpresets.styles
 
 
 class PresetButton(ttk.Button):
@@ -50,7 +50,7 @@ class PresetButton(ttk.Button):
         self.ptz_delete_preset = camera.delete_preset
         self.response_handler = response_handler
 
-        self.config(style='FixedWidthSmallTextLeft.TButton')
+        self.config(style='PresetButton.TButton')
         self._update_button()
 
         self.bind('<Button-1>', self._goto_preset)
@@ -101,7 +101,7 @@ class PresetButton(ttk.Button):
         Truncate the preset name if it exceeds 20 characters.
         """ 
         button_text = f'{self.preset_num:02} {self.preset_name:.20}'
-        style = 'FixedWidthSmallTextLeft.TButton'
+        style = 'PresetButton.TButton'
         self.config(style=style, text=button_text)
 
     def _set_preset(self, event):
