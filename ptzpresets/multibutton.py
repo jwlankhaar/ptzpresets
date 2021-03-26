@@ -52,11 +52,10 @@ class MultiButton(ttk.Button):
     def __init__(self, master=None, text=None, number=None, default_style=None, 
                  highlight_style=None, callback=None, *args, **kwargs):
         super().__init__(master=master, *args, **kwargs)
-        
-        self.default_style = default_style
-        self.highlight_style = highlight_style
-        self.current_style = default_style
-        
+             
+        self.default_style = default_style or 'TButton'
+        self.highlight_style = highlight_style or 'TButton'
+        self.current_style = default_style or 'TButton'
         
         self.number = number
         self._set_text(text)
@@ -82,7 +81,7 @@ class MultiButton(ttk.Button):
         self.config(text=text)
 
     def get_name(self):
-        return self['text'].split(' ')[1]
+        return self['text'].split(' ', maxsplit=1)[1]
 
     def rename(self, new_name=None):
         if not new_name:
@@ -95,12 +94,13 @@ class MultiButton(ttk.Button):
 
     def highlight(self):
         self.config(style=self.highlight_style)
+        self.current_style = self.highlight_style
 
     def playdown(self):
         self.config(style=self.default_style)
+        self.current_style = self.default_style
 
     def _ask_new_name(self):
-        # self.button_config = self.config()
         self._is_renaming.set(True)
         entry_text = tk.StringVar(master=self.master, value=self.get_name())
         entry = tk.Entry(
@@ -118,12 +118,13 @@ class MultiButton(ttk.Button):
     def _close_rename(self, entry):
         new_name = entry.get()
         entry.destroy()
+        self._refresh()
+        self._set_text(new_name)
         self._is_renaming.set(False)
-        self.rename(new_name)
 
     def _cancel_rename(self, entry):
-        self._refresh()
         entry.destroy()
+        self._refresh()
         self._is_renaming.set(False)
 
     def _refresh(self):

@@ -4,3 +4,4 @@ venv/
 *.code-workspace
 build/
 __pycache__/
+config*.json
