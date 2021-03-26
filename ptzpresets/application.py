@@ -127,6 +127,7 @@ class Application(ttk.Frame):
     def show_help(self, event):
         window = tk.Toplevel()
         window.title('PTZ Presets Help')
+        window.iconbitmap(styles.APP_ICON)
         help_txt = open(HELP_FILE, 'rt', encoding='utf8').read().replace('\\t', '\t')
         txt_widget = tk.Text(
             master=window, 
