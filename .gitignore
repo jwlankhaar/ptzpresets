@@ -3,3 +3,4 @@ happytime-multi-onvif-server/
 venv/
 *.code-workspace
 build/
+__pycache__/
