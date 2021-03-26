@@ -25,17 +25,17 @@ class MultiButton(ttk.Button):
         A button number. The button text is prepended with the number 
         (zero-padded).
     default_style: string
-        The name of the ttk style that is used by default for the button (should
-        descend from the TButton style).
+        The name of the ttk style that is used by default for the button 
+        (should descend from the TButton style).
     highlight_style: string
-        The name of the ttk style that is used to highlight the button (should
-        descend from the TButton style).
+        The name of the ttk style that is used to highlight the button 
+        (should descend from the TButton style).
     callback: callable
-        The callable that is used to handle the click events (should accept an
-        event argument). The event object passed to the callback has an
-        additional attribute state_decoded that contains the captured event
-        in the same notation as used for the binding (e.g. '<Button-1>' for a 
-        regular click).    
+        The callable that is used to handle the click events (should 
+        accept an event argument). The event object passed to the callback 
+        has an additional attribute state_decoded that contains the captured 
+        event in the same notation as used for the binding (e.g. '<Button-1>' 
+        for a regular click).    
 
     Methods
     -------
@@ -64,13 +64,20 @@ class MultiButton(ttk.Button):
         self._is_renaming = tk.BooleanVar(value=False)
 
         def event_state_decorator(func):
-            """Wrap the callback to add the decoded event state to the event."""
+            """Wrap the callback to add the decoded event state to the 
+            event.
+            """
             def wrapper(event):
                 event.state_decoded = self._add_decoded_event_state(event.state)
                 return func(event)
             return wrapper
-
-        for type in ['<Button-1>', '<Shift-Button-1>', '<Control-Button-1>', '<Alt-Button-1>']:
+        events = [
+            '<Button-1>', 
+            '<Shift-Button-1>', 
+            '<Control-Button-1>', 
+            '<Alt-Button-1>'
+        ]
+        for type in events:
             self.bind(type, event_state_decorator(callback))
 
     def _set_text(self, name):
@@ -143,11 +150,9 @@ class MultiButton(ttk.Button):
             0x2000c: '<Alt-Control-1>',
             0x2000d: '<Alt_R-Shift-Button-1>'
         }
-        # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/event-handlers.html (refer to the state value)
+        # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/event-handlers.html 
+        # (refer to the state value)
         return states.get(state, '<Other>')
-
-
-#TODO: find out how to highlight
 
 
 

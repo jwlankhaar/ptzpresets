@@ -18,17 +18,19 @@ class Controller:
     cameras: dictionary
         Holds a dictionary for each camera with the actual
         camera object (Camera class) and the presets.
+    presets: dictionary
+        Holds a dictionary for each camera with a dictionary
+        per preset.
+    current_presets: dictionary
+        Dictionary with the current preset tokens of each
+        camera.
     refresh_gui_func: callable
         A callable that refreshes the GUI.
     show_status_func: callable
         A callable that displays the status messages in the GUI.
-    status: string
-        Representation of the current status of the application.
-    
+        
     Methods
     -------
-    get_preset_names(camera_key)
-        Return a list of names of the presets of a camera.
     add_buttons_to_presets(camera_key, buttons)
         Tie the GUI preset buttons to the presets of a camera.
     process_preset_click(event, camera_key, token)
@@ -111,22 +113,17 @@ class Controller:
             )
         
     def add_preset(self, event, camera_key):
-        camera = self.cameras[camera_key]
-        token = camera.set_preset()
-        preset_name = camera.preset_names[token]
-        self.presets[camera_key][token] = {'name': preset_name}
+        token = self.cameras[camera_key].set_preset()
         self.current_presets[camera_key] = token
-        self._refresh()
-        new_name = self.presets[camera_key][token]['button'].rename()
-        self.presets[camera_key][token]['button'].highlight()
-        self.presets[camera_key][token]['name'] = new_name
+        self._refresh()   # Refresh will create a preset button.
+        preset = self.presets[camera_key][token]
+        new_name = preset['button'].rename()
+        preset['name'] = new_name
         self.show_status(
             f'{camera_key}: Preset {new_name} ({token}) added'
         )
 
     def _refresh(self):
-        for ckey in self.cameras.keys():
-            self.cameras[ckey].refresh()
         self.presets = self._get_presets()
         self.refresh_gui()
 

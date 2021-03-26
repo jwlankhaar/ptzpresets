@@ -4,7 +4,7 @@ PTZ Presets
 A switchboard for PTZ Cameras with ONVIF support.
 
 INPUT\t\tMEANING
-
+----------------------------------------------------------------------------------
 PRESET\t\tGo to preset
 SHIFT + PRESET\t\tSave the current position as the clicked preset
 CTRL + PRESET\t\tRename the clicked preset (ENTER: confirm; ESC: cancel)

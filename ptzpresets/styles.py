@@ -1,10 +1,12 @@
 # coding: utf-8
 
+
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.font as tkfont
 
 from pathlib import Path
+
 
 # Instantiate style manager.
 style = ttk.Style()
@@ -48,10 +50,9 @@ style.configure('PresetButton.TButton',
 
 style.configure('Highlighted.PresetButton.TButton',
     font=(DEFAULT_FONT, 9, tkfont.BOLD),
-    foreground='#9a1eb4',
+    foreground='#6C2A44',
     width=17
 )
-
 
 # Labels
 style.configure('Statusbar.TLabel',

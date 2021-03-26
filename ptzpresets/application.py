@@ -118,6 +118,10 @@ class Application(ttk.Frame):
             cam.refresh()
         self.create_camera_widgets()
         self.position_camera_widgets()
+        for ckey in self.controller.cameras.keys():
+            current_preset = self.controller.current_presets[ckey]
+            if current_preset:
+                self.controller.presets[ckey][current_preset]['button'].highlight()
         if not silent:
             self.statusbar.update_('')
 
