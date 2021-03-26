@@ -64,8 +64,6 @@ class Camera:
         return response
 
     def goto_preset(self, preset_token):
-        last_preset_token = self.current_preset_token
-        self.current_preset_token = preset_token
         return self.ptz_service.GotoPreset({
             'ProfileToken': self.profile_token, 
             'PresetToken': preset_token
@@ -109,9 +107,4 @@ class Camera:
             if pre_pos == pos:
                 return p['token']
         return None
-
-
-
-
-        pass
         #TODO: implement
