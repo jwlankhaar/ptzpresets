@@ -6,11 +6,8 @@
 
 from ptzpresets import multibutton
 import tkinter as tk
-import tkinter.messagebox as tkmsgbox
 import tkinter.ttk as ttk
 
-import ptzpresets.errors as errors
-import ptzpresets.camera as camera
 import ptzpresets.controller as controller
 import ptzpresets.statusbar as statusbar
 import ptzpresets.styles as styles
