@@ -11,9 +11,9 @@ import tkinter.ttk as ttk
 class MultiButton(ttk.Button):
     """Multifunctional subclass of ttk.Button.
 
-    It adds a rename functionality with a text entry and facilitates easy 
+    Adds a rename functionality with a text entry and facilitates easy 
     capturing of button clicks combined with Shift, Alt and Control keys. 
-    It also facilitates easy highlighting of button.
+    Also facilitates easy highlighting of button.
 
     Attributes
     ----------

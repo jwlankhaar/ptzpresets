@@ -31,7 +31,7 @@ CHAR_WIDTH_PX = get_character_width_pixels()
 APP_DIR = Path.cwd()
 STATIC_DIR = APP_DIR / 'static'
 
-APP_ICON = STATIC_DIR / 'ptzpresets-icon.ico'
+APP_ICON = STATIC_DIR / 'ptzpresets.ico'
 
 BUTTON_ADD_PRESET_DEFAULT = tk.PhotoImage(file=(STATIC_DIR / 'button_add_preset_default.png'))
 BUTTON_ADD_PRESET_HOVER = tk.PhotoImage(file=(STATIC_DIR / 'button_add_preset_hover.png'))
