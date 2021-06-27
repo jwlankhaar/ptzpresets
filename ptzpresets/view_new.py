@@ -1,7 +1,7 @@
 #coding: utf-8
 
 """
-    Application class that defines the GUI (including its business logic).
+    View class that defines the GUI.
 """
 
 import tkinter as tk
@@ -13,56 +13,76 @@ import ptzpresets.controller as controller
 import ptzpresets.statusbar as statusbar
 import ptzpresets.styles as styles
 
-from ptzpresets import multibutton
+from ptzpresets import camera, multibutton
 
 
 APP_TITLE = 'PTZ Presets'
 HELP_FILE = Path('static') / 'help.txt'
 
 
-class Application(ttk.Frame):
-    def __init__(self, master=None, config=None, *args, **kwargs):
-        super().__init__(master=master, *args, **kwargs)
-        self.controller = controller.Controller(
-            config=config, 
-            refresh_gui_func=self.refresh,
-            show_status_func=self.show_status
-        )
+class View(ttk.Frame):
+    def __init__(self, master=None):
+        super().__init__(master=master)
 
         self.master.title(APP_TITLE)
         self.master.iconbitmap(styles.APP_ICON)
         self.create_frames()
-        self.create_camera_widgets()
-        self.create_general_widgets()
+        # self.create_camera_widgets(model.presets)
+        # self.create_general_widgets()
         self.position_frames()
-        self.position_camera_widgets()
-        self.position_general_widgets()
+        # self.position_camera_widgets()
+        # self.position_general_widgets()
+        
+        #
+        # create_preset_panel
+        # set_camera_name
+        # position_preset_panels
+        # create_preset_buttons
+        # delete_preset_button
+        # refresh_panel
 
     def create_frames(self):
         self.body = ttk.Frame(master=self.master)
         self.footer = ttk.Frame(master=self.master)
 
-    def create_camera_widgets(self):
-        self.labels_camera = []
-        self.buttons_presets = []
-        self.buttons_add_preset = [] 
-        for cname in self.controller.cameras.keys():
-            self.labels_camera.append(
+    def create_camera_widgets(self, presets):
+        self.camera_labels = []
+        self.preset_buttons = []
+        self.add_preset_buttons = []
+        for cname in presets.keys():
+            self.camera_labels.append(
                 ttk.Label(master=self.body, text=cname, style='TLabel')
-            )
-            self.buttons_presets.append([
-                multibutton.MultiButton(
-                    master=self.body, 
-                    text=p['name'], 
+            ) 
+            for i, preset in enumerate(presets[cname].values()):
+                button = multibutton.MultiButton(
+                    master=self.body,
+                    text=preset.name,
                     number=i+1,
                     default_style='PresetButton.TButton',
                     highlight_style='Highlighted.PresetButton.TButton',
-                    callback=lambda e, c=cname, t=t: 
-                        self.controller.process_preset_click(e, c, t)
-                ) for i, (t, p) in enumerate(self.controller.presets[cname].items())
-            ])
-            self.controller.add_buttons_to_presets(cname, self.buttons_presets[-1])
-            self.buttons_add_preset.append(self.create_add_preset_button(cname))
+                    callback=preset.callback
+                )
+                self.preset_buttons.append(button)
+            add_button = self.create_add_preset_button(cname)
+            self.add_preset_buttons.append(add_button)
+        #TODO: move to controller
+        # for cname in self.controller.cameras.keys():
+        #     self.labels_camera.append(
+        #         ttk.Label(master=self.body, text=cname, style='TLabel')
+        #     )
+        #     self.buttons_presets.append([
+        #         multibutton.MultiButton(
+        #             master=self.body, 
+        #             text=p['name'], 
+        #             number=i+1,
+        #             default_style='PresetButton.TButton',
+        #             highlight_style='Highlighted.PresetButton.TButton',
+        #             callback=lambda e, c=cname, t=t: 
+        #                 self.controller.process_preset_click(e, c, t)
+        #         ) for i, (t, p) in enumerate(self.controller.presets[cname].items())
+        #     ])
+        #     self.controller.add_buttons_to_presets(cname, self.buttons_presets[-1])
+        #     self.buttons_add_preset.append(self.create_add_preset_button(cname))
             
     def create_add_preset_button(self, camera_key):
         btn = ttk.Label(master=self.body, image=styles.ADDPRESET_BUTTON_DEFAULT)
@@ -95,11 +115,11 @@ class Application(ttk.Frame):
         self.footer.pack(expand=tk.NO, fill=tk.X, side=tk.BOTTOM, pady=(10,0))
 
     def position_camera_widgets(self):
-        for i, camlabel in enumerate(self.labels_camera):
+        for i, camlabel in enumerate(self.camera_labels):
             camlabel.grid(row=0, column=i)
-            for j, btn in enumerate(self.buttons_presets[i]):
+            for j, btn in enumerate(self.preset_buttons[i]):
                 btn.grid(column=i, row=j+1, padx=5, pady=1)
-            self.buttons_add_preset[i].grid(column=i, row=j+2)
+            self.add_preset_buttons[i].grid(column=i, row=j+2)
 
     def position_general_widgets(self):
         self.button_refresh.grid(row=0, column=0)

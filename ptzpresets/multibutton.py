@@ -62,15 +62,11 @@ class MultiButton(ttk.Button):
         self.config(style=default_style)
 
         self._is_renaming = tk.BooleanVar(value=False)
-
-        def event_state_decorator(func):
-            """Wrap the callback to add the decoded event state to the 
-            event.
-            """
-            def wrapper(event):
-                event.state_decoded = self._add_decoded_event_state(event.state)
-                return func(event)
-            return wrapper
+        
+        if callback:
+            self.register_callback(callback)
+            
+    def register_callback(self, callback):
         events = [
             '<Button-1>', 
             '<Shift-Button-1>', 
@@ -78,14 +74,7 @@ class MultiButton(ttk.Button):
             '<Alt-Button-1>'
         ]
         for type in events:
-            self.bind(type, event_state_decorator(callback))
-
-    def _set_text(self, name):
-        if self.number is not None:
-            text = f'{self.number:02} {name}'
-        else:
-            text = name
-        self.config(text=text)
+            self.bind(type, MultiButton._add_decoded_event_state(callback))
 
     def get_name(self):
         return self['text'].split(' ', maxsplit=1)[1]
@@ -121,6 +110,13 @@ class MultiButton(ttk.Button):
         entry.bind('<Escape>', lambda e: self._cancel_rename(e.widget))
         entry.pack(expand=tk.YES, fill=tk.X, side=tk.TOP, anchor=tk.CENTER)
         entry.focus()
+        
+    def _set_text(self, name):
+        if self.number is not None:
+            text = f'{self.number:02} {name}'
+        else:
+            text = name
+        self.config(text=text)
 
     def _close_rename(self, entry):
         new_name = entry.get()
@@ -139,7 +135,7 @@ class MultiButton(ttk.Button):
         # Resetting the text seems to be sufficient for an update.
 
     @staticmethod
-    def _add_decoded_event_state(state):
+    def _decode_event_state(state):
         states = {
             0x8: '<Button-1>',
             0xc: '<Control-Button-1>',
@@ -152,8 +148,18 @@ class MultiButton(ttk.Button):
         }
         # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/event-handlers.html 
         # (refer to the state value)
+        # http://www.tcl.tk/man/tcl8.6/TkCmd/keysyms.htm
         return states.get(state, '<Other>')
 
+    @staticmethod
+    def _add_decoded_event_state(func):
+        """Decorate the event with the decoded event state.
+        """
+        def wrapper(event):
+            event.state_decoded = MultiButton._decode_event_state(event.state)
+            return func(event)
+        return wrapper
+        
 
 
 

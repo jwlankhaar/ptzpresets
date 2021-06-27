@@ -39,11 +39,12 @@ class Controller:
         Callback for the Add preset button of a camera.
     """
     def __init__(self, config=None, refresh_gui_func=None, show_status_func=None):
+        self.show_status = show_status_func
+        self.refresh_gui = refresh_gui_func
+        
         self.cameras = self._create_cameras(config)
         self.presets = self._get_presets()
         self.current_presets = self._init_current_presets()
-        self.refresh_gui = refresh_gui_func
-        self.show_status = show_status_func
 
     def _create_cameras(self, config):
         cameras = dict()
