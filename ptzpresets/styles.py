@@ -5,11 +5,12 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.font as tkfont
 
-from pathlib import Path
+from ptzpresets import globals
+from ptzpresets import root
 
 
 # Instantiate style manager.
-style = ttk.Style()
+style = ttk.Style(master=root.root)
 
 def system_font():
     """Return default font on the system. Use name system_font
@@ -28,14 +29,19 @@ def get_character_width_pixels():
 DEFAULT_FONT = get_default_font_family()
 CHAR_WIDTH_PX = get_character_width_pixels()
 
-APP_DIR = Path.cwd()
-STATIC_DIR = APP_DIR / 'static'
+APP_ICON = globals.STATIC_DIR / 'ptzpresets.ico'
 
-APP_ICON = STATIC_DIR / 'ptzpresets.ico'
+SPLASH_SCREEN = tk.PhotoImage(file=(globals.STATIC_DIR / 'splash_screen.png'))
 
-ADDPRESET_BUTTON_DEFAULT = tk.PhotoImage(file=(STATIC_DIR / 'addpreset_button_default.png'))
-ADDPRESET_BUTTON_HOVER = tk.PhotoImage(file=(STATIC_DIR / 'addpreset_button_hover.png'))
+ADDPRESET_BUTTON_DEFAULT = tk.PhotoImage(
+    file=(globals.STATIC_DIR / 'addpreset_button_default.png'))
+ADDPRESET_BUTTON_HOVER = tk.PhotoImage(
+    file=(globals.STATIC_DIR / 'addpreset_button_hover.png'))
 
+# Cursor path should be prepended by @ (https://stackoverflow.com/a/66205274)
+# and it seems to have to be a representation with forward slashes.
+DRAGANDDROP_CURSOR = '@static/drag_and_drop_cursor.cur' 
+DRAGANDDROP_SNAP_DISTANCE = 4
 
 # ----- Styles ---------------------------------------------------------------
 
@@ -59,3 +65,15 @@ style.configure('Statusbar.TLabel',
     anchor=tk.W,
     font=(DEFAULT_FONT, 7)
 )
+
+style.configure('Splashscreen.Statusbar.TLabel',
+    anchor=tk.W,
+    font=(DEFAULT_FONT, 7)
+)
+
+style.configure('Splashscreen.CreditsLine.TLabel',
+    anchor = tk.W,
+    font=(DEFAULT_FONT, 7),
+    foreground='#4D4D4D')
+
+SPLASHSCREEN_STATUSBAR_BACKGROUND = '#DEE1E6'

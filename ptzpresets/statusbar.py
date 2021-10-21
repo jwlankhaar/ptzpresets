@@ -7,7 +7,7 @@ import ptzpresets.styles as styles
 class Statusbar(ttk.Label):
     """Subclass of ttk.Label for a statusbar.
 
-    Add a status bar to the parent widget.
+    Add a status bar to a parent widget.
 
     Attributes
     ----------
@@ -20,7 +20,7 @@ class Statusbar(ttk.Label):
     
     Methods
     -------
-    update_(message): 
+    inform(message): 
         Set the status bar text.
     alert(message, duration_seconds=2): 
         Show a status bar text temporarily. Restore the previous
@@ -39,7 +39,7 @@ class Statusbar(ttk.Label):
         self.display_text = tk.StringVar(master=self.master)
         self.config(textvariable=self.display_text)
 
-    def update_(self, message):
+    def inform(self, message):
         self.message = message
         self.display_text.set(f'{message}')
 
@@ -48,9 +48,9 @@ class Statusbar(ttk.Label):
         status bar text to its original text.
         """
         current_text = self.message
-        self.update_(message)
-        self.after(duration_seconds*1000, lambda t=current_text: self.update_(t))
+        self.inform(message)
+        self.after(duration_seconds*1000, lambda t=current_text: self.inform(t))
 
     def clear(self):
-        self.update_(message='')
+        self.inform(message='')
 

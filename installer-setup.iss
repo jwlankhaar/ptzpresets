@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "PTZ Presets"
-#define MyAppVersion "1.0"
+#define MyAppVersion "2.0"
 #define MyAppPublisher "Jan-Willem Lankhaar"
 #define MyAppURL "github.com/jwlankhaar/ptzpresets"
 #define MyAppExeName "ptzpresets.exe"
@@ -26,9 +26,9 @@ UsedUserAreasWarning=no
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=C:\Users\jan-willem.lankhaar.MDW\workspaces\ptzpresets\dist
+OutputDir=C:\Python-work\ptzpresets\dist
 OutputBaseFilename=PTZ Preset {#MyAppVersion}-setup
-SetupIconFile=C:\Users\jan-willem.lankhaar.MDW\workspaces\ptzpresets\build\exe.win-amd64-3.8\static\ptzpresets.ico
+SetupIconFile=C:\Python-work\ptzpresets\build\exe.win-amd64-3.9\static\ptzpresets.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -41,7 +41,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
 
 [Files]
-Source: "C:\Users\jan-willem.lankhaar.MDW\workspaces\ptzpresets\build\exe.win-amd64-3.8\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs 
+Source: "C:\Python-work\ptzpresets\build\exe.win-amd64-3.9\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

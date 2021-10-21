@@ -36,6 +36,8 @@ class MultiButton(ttk.Button):
         has an additional attribute state_decoded that contains the captured 
         event in the same notation as used for the binding (e.g. '<Button-1>' 
         for a regular click).    
+    is_highlighted: boolean
+        Flag that indicates whether the button is highlighted.
 
     Methods
     -------
@@ -62,22 +64,27 @@ class MultiButton(ttk.Button):
         self.config(style=default_style)
 
         self._is_renaming = tk.BooleanVar(value=False)
+        self.__is_highlighted = False
         
         if callback:
             self.register_callback(callback)
             
     def register_callback(self, callback):
-        events = [
-            '<Button-1>', 
-            '<Shift-Button-1>', 
-            '<Control-Button-1>', 
-            '<Alt-Button-1>'
+        event_patterns = [
+            '<ButtonRelease-1>', 
+            '<Shift-ButtonRelease-1>', 
+            '<Control-ButtonRelease-1>', 
+            '<Alt-ButtonRelease-1>'
         ]
-        for type in events:
-            self.bind(type, MultiButton._add_decoded_event_state(callback))
+        for pattern in event_patterns:
+            self.bind(pattern, MultiButton._add_decoded_event_state(callback), 
+                      add='+')
 
     def get_name(self):
-        return self['text'].split(' ', maxsplit=1)[1]
+        if self.number is not None:
+            return self['text'].split(' ', maxsplit=1)[1]
+        else:
+            return self['text']
 
     def rename(self, new_name=None):
         if not new_name:
@@ -91,14 +98,19 @@ class MultiButton(ttk.Button):
     def highlight(self):
         self.config(style=self.highlight_style)
         self.current_style = self.highlight_style
+        self.__is_highlighted = True
 
     def playdown(self):
         self.config(style=self.default_style)
         self.current_style = self.default_style
-
+        self.__is_highlighted = False
+        
+    @property
+    def is_highlighted(self): return self.__is_highlighted
+    
     def _ask_new_name(self):
         self._is_renaming.set(True)
-        entry_text = tk.StringVar(master=self.master, value=self.get_name())
+        entry_text = tk.StringVar(master=self, value=self.get_name())
         entry = tk.Entry(
             master=self,
             relief=tk.FLAT,
@@ -141,10 +153,17 @@ class MultiButton(ttk.Button):
             0xc: '<Control-Button-1>',
             0xd: '<Control-Shift-Button-1>',
             0x9: '<Shift-Button-1>',
+            0x108: '<ButtonRelease-1>',
+            0x10c: '<Control-ButtonRelease-1>',
+            0x109: '<Shift-ButtonRelease-1>',
+            0x20108: '<Alt_L-ButtonRelease-1>',
             0x20008: '<Alt_L-Button-1>',
+            0x20109: '<Alt_L-Shift-ButtonRelease-1>',
             0x20009: '<Alt_L-Shift-Button-1>',
-            0x2000c: '<Alt-Control-1>',
-            0x2000d: '<Alt_R-Shift-Button-1>'
+            0x2000c: '<Alt-Control-Button-1>',
+            0x2010c: '<Alt-Control-ButtonRelease-1>',
+            0x2000d: '<Alt_R-Shift-Button-1>',
+            0x2010d: '<Alt_R-Shift-ButtonRelease-1>'
         }
         # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/event-handlers.html 
         # (refer to the state value)

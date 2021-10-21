@@ -109,7 +109,7 @@ class Application(ttk.Frame):
 
     def refresh(self, event=None, silent=False):
         if not silent:
-            self.statusbar.update_('Reloading presets...')
+            self.statusbar.inform('Reloading presets...')
         for w in self.body.winfo_children():
             w.destroy()
         for cam in self.controller.cameras.values():
@@ -121,10 +121,10 @@ class Application(ttk.Frame):
             if current_preset:
                 self.controller.presets[ckey][current_preset]['button'].highlight()
         if not silent:
-            self.statusbar.update_('')
+            self.statusbar.inform('')
 
     def show_status(self, message):
-        self.statusbar.update_(message)
+        self.statusbar.inform(message)
 
     def show_help(self, event):
         window = tk.Toplevel()

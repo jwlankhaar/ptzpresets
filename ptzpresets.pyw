@@ -2,11 +2,10 @@
 
 import argparse
 
-import ptzpresets.application as application
-import ptzpresets.utils as utils
-
-
-DEFAULT_CONFIG_FILE = 'config.json'
+from ptzpresets import controller
+from ptzpresets import globals
+from ptzpresets import root
+from ptzpresets import utils
 
 
 if __name__ == '__main__':
@@ -14,11 +13,11 @@ if __name__ == '__main__':
     argparser.add_argument(
         '--config', '-c',
         dest='config_file',
-        help='A configuration file, other than the default config.json in the current directory.',
-        default=DEFAULT_CONFIG_FILE
+        help=('A configuration file, other than the default '
+              'config.json in the current directory.'),
+        default=globals.DEFAULT_CONFIG_FILE
     )
     args = argparser.parse_args()
     config = utils.read_config(args.config_file)
-
-    app = application.Application(config=config)
-    app.mainloop()
+    ctrl = controller.Controller(config, master=root.root)
+    ctrl.view.mainloop() 

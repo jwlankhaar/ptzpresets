@@ -9,11 +9,10 @@ import tkinter.ttk as ttk
 
 from pathlib import Path
 
-import ptzpresets.controller as controller
 import ptzpresets.statusbar as statusbar
 import ptzpresets.styles as styles
 
-from ptzpresets import camera, multibutton
+from ptzpresets import multibutton
 
 
 APP_TITLE = 'PTZ Presets'
@@ -21,25 +20,17 @@ HELP_FILE = Path('static') / 'help.txt'
 
 
 class View(ttk.Frame):
-    def __init__(self, master=None):
-        super().__init__(master=master)
+    def __init__(self, master=None, model=None, *args, **kwargs):
+        super().__init__(master=master, *args, **kwargs)
 
         self.master.title(APP_TITLE)
         self.master.iconbitmap(styles.APP_ICON)
         self.create_frames()
-        # self.create_camera_widgets(model.presets)
-        # self.create_general_widgets()
+        self.create_camera_widgets(model.presets)
+        self.create_general_widgets()
         self.position_frames()
-        # self.position_camera_widgets()
-        # self.position_general_widgets()
-        
-        #
-        # create_preset_panel
-        # set_camera_name
-        # position_preset_panels
-        # create_preset_buttons
-        # delete_preset_button
-        # refresh_panel
+        self.position_camera_widgets()
+        self.position_general_widgets()
 
     def create_frames(self):
         self.body = ttk.Frame(master=self.master)
@@ -129,7 +120,7 @@ class View(ttk.Frame):
 
     def refresh(self, event=None, silent=False):
         if not silent:
-            self.statusbar.update_('Reloading presets...')
+            self.statusbar.inform('Reloading presets...')
         for w in self.body.winfo_children():
             w.destroy()
         for cam in self.controller.cameras.values():
@@ -141,10 +132,10 @@ class View(ttk.Frame):
             if current_preset:
                 self.controller.presets[ckey][current_preset]['button'].highlight()
         if not silent:
-            self.statusbar.update_('')
+            self.statusbar.inform('')
 
     def show_status(self, message):
-        self.statusbar.update_(message)
+        self.statusbar.inform(message)
 
     def show_help(self, event):
         window = tk.Toplevel()

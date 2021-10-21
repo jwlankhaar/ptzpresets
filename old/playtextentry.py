@@ -1,7 +1,7 @@
 import tkinter as tk
 
 def trigger_rename(button):
-    entry_text = tk.StringVar(master=button, value='Jomina')
+    entry_text = tk.StringVar(master=button, value='Testbutton')
     entry = tk.Entry(master=button, exportselection=False, textvariable=entry_text)
     entry.bind('<FocusIn>', lambda e: e.widget.select_range(start=0, end=tk.END))
     entry.bind('<Return>', lambda e: rename(e.widget))

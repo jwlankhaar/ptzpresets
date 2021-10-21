@@ -4,7 +4,7 @@
 """Observable classes that implements a simple observable pattern.
 """
 
-class ObservableMixin():
+class ObservableMixin:
     """Mixin class that provides the functionality to 
     make a container class observable.
     """
@@ -19,20 +19,20 @@ class ObservableMixin():
             for func in self.observers:
                 func()
 
-    def _make_observable(self, func):
-        """Decorator that makes a method observable"""
+    def _decorate(self, func):
+        """Retun a decorator that makes a method observable."""
         def wrapper(*args, **kwargs):
             value = func(*args, **kwargs)
             self._trigger_observers()
             return value
         return wrapper
 
-    def _decorate_methods(self, methods_to_decorate):
-        """Use the decorator to make methods that change the
-        container observable.
+    def _make_observable(self, methods_to_decorate):
+        """Decorate methods that change the container to make 
+        them observable.
         """
         for attr in methods_to_decorate:
-            setattr(self, attr, self._make_observable(getattr(self, attr)))
+            setattr(self, attr, self._decorate(getattr(self, attr)))
 
 
 class ObservableList(list, ObservableMixin):
@@ -48,7 +48,7 @@ class ObservableList(list, ObservableMixin):
     -------
     register_observer(callable):
         Register a new observer in the list. Each observer
-        will be called after the list content changes.
+        will be called after the list content has changed.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -56,7 +56,7 @@ class ObservableList(list, ObservableMixin):
             'append', 'clear', 'copy', 'extend', 'insert', 'pop', 'remove', 
             'reverse', 'sort'
         ]
-        self._decorate_methods(methods_to_decorate)
+        self._make_observable(methods_to_decorate)
 
     # Magic methods have to be overloaded on class level.
     # https://stackoverflow.com/a/21990465/12646289
@@ -87,15 +87,15 @@ class ObservableDict(dict, ObservableMixin):
     -------
     register_observer(callable):
         Register a new observer in the dictionary. Each observer
-        will be called after the dictionary content changes.
+        will be called after the dictionary content has changed.
     """    
-    def __init__(self, *args):
-        super().__init__(args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         methods_to_decorate = [
             'clear', 'copy', 'pop', 'popitem', 
             'setdefault', 'update'
         ]
-        self._decorate_methods(methods_to_decorate)
+        self._make_observable(methods_to_decorate)
 
     # Magic methods have to be overloaded on class level.
     # https://stackoverflow.com/a/21990465/12646289
@@ -115,14 +115,14 @@ class ObservableValue(ObservableMixin):
     
     Properties
     ----------
-    value:
+    value: property (get/set)
         The value to be observed.
         
     Methods
     -------
     register_observer(callable): 
         Register a new observer. Each observer will be called
-        when the observable value changes.
+        when the observable value has changed.
     """
     def __init__(self, value=None):
         self.__value = value

@@ -3,7 +3,7 @@ import sys
 from cx_Freeze import setup, Executable
 
 
-VERSION = 1.0#input(f"{'*'*100}\nVersion: ")
+VERSION = 2.0#input(f"{'*'*100}\nVersion: ")
 
 # Dependencies are automatically detected, but it might need
 # fine tuning.
@@ -14,7 +14,8 @@ build_options = {
         ('static', 'static'),
         ('venv/Lib/site-packages/wsdl', 'onvif/wsdl'),
         ('config_template.json', 'config.json'),
-        ('README.md', 'README.md')
+        ('README.html', 'README.html'),
+        ('Release Notes.html', 'Release Notes.html')
     ]
 }
 

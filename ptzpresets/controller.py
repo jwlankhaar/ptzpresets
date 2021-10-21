@@ -1,137 +1,184 @@
 #coding: utf-8
 
-"""Controller class that defines and controls the PTZ Presets logic.
-"""
+import json
 
+from functools import partial
+from pathlib import Path
 
-import ptzpresets.camera as camera
-import ptzpresets.errors as errors
+from ptzpresets import globals
+from ptzpresets import model
+from ptzpresets import splashscreen
+from ptzpresets import view
 
 
 class Controller:
-    """Controller class that defines and controls the PTZ Presets logic.
-
-    Attributes
-    ----------
-    config: dictionary
-        Camera configurations.
-    cameras: dictionary
-        Holds a dictionary for each camera with the actual
-        camera object (Camera class) and the presets.
-    presets: dictionary
-        Holds a dictionary for each camera with a dictionary
-        per preset.
-    current_presets: dictionary
-        Dictionary with the current preset tokens of each
-        camera.
-    refresh_gui_func: callable
-        A callable that refreshes the GUI.
-    show_status_func: callable
-        A callable that displays the status messages in the GUI.
-        
-    Methods
-    -------
-    add_buttons_to_presets(camera_key, buttons)
-        Tie the GUI preset buttons to the presets of a camera.
-    process_preset_click(event, camera_key, token)
-        Callback for the GUI preset buttons of a camera.
-    add_preset(event, camera_key)
-        Callback for the Add preset button of a camera.
+    """Controller class that ties the application model to the view.
     """
-    def __init__(self, config=None, refresh_gui_func=None, show_status_func=None):
-        self.show_status = show_status_func
-        self.refresh_gui = refresh_gui_func
+    
+    def __init__(self, config, master=None):
+        self.master = master
+        self.view = None
+        self.buttons_presets = dict()
+
+        self.splashscreen = splashscreen.Splashscreen(master)
+        self.splashscreen.show_info('Starting PTZ presets...')
+        self.splashscreen.show_info('Loading model...')
+        self.model = model.Model(config)
+        self.model.status.register_observer(self.status_observer)
+        self.model.init_model()
+        self.splashscreen.show_info('Initializing main screen...')
+        self.splashscreen.destroy()
+
+        self.build_main_view()
+        self.master.deiconify()
+
+    def status_observer(self):
+        state = self.model.status.value
+        event = state['event']
+        camera = state['camera']
+        token = state['preset_token']
+        name = state['preset_name']
+        if event == 'error':
+            if state['error_message'] == 'camera_creation_error':
+                message = (f'{camera}: Could not connect to camera. '
+                           f'Continuing without it...')
+            else:
+                message = f'{camera}: Unknown error...'
+        elif event == 'new':
+            message = f'{camera}: Adding new preset {name} ({token})'
+        elif event == 'save':
+            message = f'{camera}: Saving current position to {name} ({token})'
+        elif event == 'rename':
+            message = f'{camera}: Renamed to {name} ({token})'
+        elif event == 'goto':
+            message = f'{camera}: Going to {name} ({token})'
+        elif event == 'delete':
+            message = f'{camera}: Deleting {name} ({token})...'
+        elif event == 'commit_renames':
+            message = f'{camera}: Committing all unsaved renames...'
+        if self.view is not None:
+            self.view.statusbar.inform(message)
+        else:
+            self.splashscreen.show_info(message)
         
-        self.cameras = self._create_cameras(config)
-        self.presets = self._get_presets()
-        self.current_presets = self._init_current_presets()
-
-    def _create_cameras(self, config):
-        cameras = dict()
-        for ckey, cfg in config.items():
-            try: 
-                cameras[ckey] = camera.Camera(cfg)
-            except errors.CouldNotCreateCameraError:
-                self.show_status(
-                    f'Error creating camera {ckey}, continuing without it'
+    def build_main_view(self):
+        """Build the application's main view. Create a preset 
+        buttons panel for each camera and register the button 
+        callback handlers.
+        """
+        v = view.View(self.master)
+        for camera_key, presets in self.model.presets.items():
+            panel = v.create_presetpanel(camera_name=camera_key, 
+                                         num_presets=len(presets))
+            buttons_presets = self.attach_buttons_to_presets(camera_key, panel)
+            for button, preset in buttons_presets:
+                button.rename(preset.name)
+                button.register_callback(
+                    partial(self.presetbutton_callback, camera_key=camera_key, 
+                            preset=preset, panel=panel)
                 )
-        return cameras
+            panel.register_addbutton_observer(
+                partial(self.addbutton_observer, camera_key=camera_key, 
+                        panel=panel)
+            )
+            self.buttons_presets[camera_key] = buttons_presets
+        v.refresh(silent=True)
+        v.register_quit_callback(self.quit_callback)
+        self.view = v
+        
+    def load_panel_layout(self):
+        """Load the panel layout from a JSON file if it exists, 
+        or else return a default layout that is determined by
+        the preset order in the camera.
+        """
+        layout = dict()
+        if globals.PANEL_LAYOUT_FILE.exists():
+            with open(globals.PANEL_LAYOUT_FILE, 'rt', encoding='utf8') as f:
+                layout = json.load(f)
+        else:   # Default layout
+            for ckey, presets in self.model.presets.items():
+                layout[ckey] = list(presets.keys())
+        return layout
+    
+    def save_panel_layout(self):
+        """Save panel layout to a JSON file, which is structured 
+        as follows:
+            {"camkey": ["token", ...], ...}
+        """
+        layout = dict()
+        for ckey, panel in self.view.presetpanels.items():
+            layout[ckey] = [self.get_preset_by_button(ckey, b).token 
+                            for b in panel.presetbuttons]
+        with open(globals.PANEL_LAYOUT_FILE, 'wt', encoding='utf8') as f:
+            json.dump(layout, f, indent=4)
+    
+    def attach_buttons_to_presets(self, camera_key, panel):
+        """Return a list of tuples of button-preset pairs ordered
+        according to the layout file.
+        """
+        layout = self.load_panel_layout()
+        presets = self.model.presets[camera_key]
+        if camera_key in layout:
+            # camera_key does not have to be present in layout file
+            # (e.g. in case a new camera was added).
+            presets_ordered = [presets[t] for t in layout[camera_key]]
+        else:
+            presets_ordered = presets.values()
+        return [*zip(panel.presetbuttons, presets_ordered)]
+    
+    def get_preset_by_button(self, camera_key, button):
+        """Return the preset attached to a button.
+        """
+        # https://stackoverflow.com/a/18114565
+        d = dict(self.buttons_presets[camera_key])      
+        return d[button] 
 
-    def _get_presets(self):
-        presets = dict()
-        for ckey, cam in self.cameras.items():
-            presets[ckey] = {
-                token: {'name': name, 'button': None} 
-                for token, name in cam.get_preset_names().items()
-            }
-        return presets
-
-    def _init_current_presets(self):
-        return {ckey: None for ckey in self.cameras.keys()}
-
-    def add_buttons_to_presets(self, camera_key, buttons):
-        presets = self.presets[camera_key]
-        for token, button in zip(presets, buttons):
-            presets[token]['button'] = button
-
-    def process_preset_click(self, event, camera_key, token):
+    def presetbutton_callback(self, event, preset, panel, camera_key):
+        """Callback function that is attached to each preset button.
+        """
         button = event.widget
         state = event.state_decoded
-        preset_name = button.get_name()
-        camera = self.cameras[camera_key]
-        presets = self.presets[camera_key]
-        current_preset = self.current_presets[camera_key]
-        if state == '<Button-1>':
-            camera.goto_preset(token)
-            self._switch_highlight(camera_key, token)
-            self.show_status(
-                f'{camera_key}: Going to preset {preset_name} ({token})'
-            )
-        elif state == '<Shift-Button-1>':
-            camera.set_preset(preset_name, token)
-            self._switch_highlight(camera_key, token)
-            self.show_status(
-                f'{camera_key}: Saving current position to preset {preset_name} ({token})'
-            )
-        elif state == '<Control-Button-1>':
-            old_name = button.get_name()
-            new_name = button.rename()
-            if new_name != old_name:
-                camera.rename_preset(token, new_name)
-                self._switch_highlight(camera_key, token)
-                presets[token]['name'] = new_name
-                self.show_status(
-                    f'{camera_key}: Renaming preset to {new_name} ({token})'
-                )
-        elif state == '<Alt_L-Button-1>':
-            camera.delete_preset(token)
-            presets.pop(token)
-            if current_preset == token:
-                self.current_presets[camera_key] = None
-            self.refresh_gui()
-            self.show_status(
-                f'{camera_key}: Preset {preset_name} ({token}) deleted'
-            )
         
-    def add_preset(self, event, camera_key):
-        token = self.cameras[camera_key].set_preset()
-        self.current_presets[camera_key] = token
-        self._refresh()   # Refresh will create a preset button.
-        preset = self.presets[camera_key][token]
-        new_name = preset['button'].rename()
-        preset['name'] = new_name
-        self.show_status(
-            f'{camera_key}: Preset {new_name} ({token}) added'
+        if event.type.name == 'ButtonRelease':
+            # ButtonRelease can be triggered by a click as well as by
+            # a drag and drop acction (which involves a button reordering). 
+            # In the latter case it should be ignored.
+            if not panel.is_widgets_reordered:
+                if state == '<ButtonRelease-1>':
+                    preset.goto()
+                    panel.set_current_button(button)
+                elif state == '<Shift-ButtonRelease-1>':
+                    preset.save()
+                    panel.set_current_button(button)
+                elif state == '<Control-ButtonRelease-1>':
+                    new_name = button.rename(new_name=None)
+                    preset.rename(new_name)
+                elif state == '<Alt_L-ButtonRelease-1>':
+                    panel.delete_presetbutton(button)
+                    self.buttons_presets[camera_key].remove((button, preset))
+                    preset.delete()
+            else:
+                self.save_panel_layout()
+                panel.is_widgets_reordered = False
+            
+    def addbutton_observer(self, button, camera_key, panel):
+        """Observer function for the add button. Create a new preset 
+        and a button and connect them to each other.
+        """
+        token = self.model.add_preset(camera_key, button.rename)
+        preset = self.model.get_preset(camera_key, token)
+        button.register_callback(
+            partial(self.presetbutton_callback, camera_key=camera_key, 
+                    preset=preset, panel=panel)
         )
-
-    def _refresh(self):
-        self.presets = self._get_presets()
-        self.refresh_gui()
-
-    def _switch_highlight(self, camera_key, token_to_highlight):
-        current_preset = self.current_presets[camera_key]
-        if self.current_presets[camera_key]:
-            self.presets[camera_key][current_preset]['button'].playdown()
-        self.presets[camera_key][token_to_highlight]['button'].highlight()
-        self.current_presets[camera_key] = token_to_highlight
-
+        self.buttons_presets[camera_key].append((button, preset))
+        panel.refresh()
+        panel.set_current_button(button)
+        
+    def quit_callback(self):
+        """Callback function that is called before the application 
+        is shut down. 
+        """
+        self.model.commit_uncommitted_renames()
+        self.save_panel_layout()
+                
