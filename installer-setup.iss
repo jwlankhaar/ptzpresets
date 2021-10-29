@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "PTZ Presets"
-#define MyAppVersion "2.0"
+#define MyAppVersion "2.01"
 #define MyAppPublisher "Jan-Willem Lankhaar"
 #define MyAppURL "github.com/jwlankhaar/ptzpresets"
 #define MyAppExeName "ptzpresets.exe"
@@ -10,7 +10,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{E576A594-96F7-4762-86AA-A4A5A5BDAE1F}
+AppId={{E576A594-96F7-4762-86AA-A4A5A5BDAE1F}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
