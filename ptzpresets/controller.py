@@ -139,21 +139,24 @@ class Controller:
         button = event.widget
         state = event.state_decoded
         
+        # CapsLock state should be ignored.
+        state = state.replace('CapsLock-', '')
+        
         if event.type.name == 'ButtonRelease':
             # ButtonRelease can be triggered by a click as well as by
-            # a drag and drop acction (which involves a button reordering). 
+            # a drag and drop acction (button reordering). 
             # In the latter case it should be ignored.
             if not panel.is_widgets_reordered:
-                if state == '<ButtonRelease-1>':
+                if state == '<ButtonRelease-Button-1>':
                     preset.goto()
                     panel.set_current_button(button)
-                elif state == '<Shift-ButtonRelease-1>':
+                elif state == '<Shift-ButtonRelease-Button-1>':
                     preset.save()
                     panel.set_current_button(button)
-                elif state == '<Control-ButtonRelease-1>':
+                elif state == '<Control-ButtonRelease-Button-1>':
                     new_name = button.rename(new_name=None)
                     preset.rename(new_name)
-                elif state == '<Alt_L-ButtonRelease-1>':
+                elif state == '<Alt-ButtonRelease-Button-1>':
                     panel.delete_presetbutton(button)
                     self.buttons_presets[camera_key].remove((button, preset))
                     preset.delete()

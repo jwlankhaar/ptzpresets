@@ -85,7 +85,7 @@ class Model:
         for ckey, cam in self.cameras.items():
             presets[ckey] = {
                 t: preset.Preset(name=n, token=t, camera=cam)
-                for t, n in cam.get_presetnames_bytoken().items()
+                for t, n in cam.preset_names.items()
             }
         return presets
 

@@ -1,6 +1,11 @@
 
 # PTZ Presets Release Notes
 
+## v 2.01, October 2021
+Bug fixes: 
+- Ambiguities in uncommitted preset renaming fixed.
+- Ignore CapsLock state.
+
 ## v 2.0, October 2021
 Major release. The application was refactored completely.
 
