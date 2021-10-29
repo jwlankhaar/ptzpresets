@@ -3,7 +3,7 @@ import sys
 from cx_Freeze import setup, Executable
 
 
-VERSION = 2.0#input(f"{'*'*100}\nVersion: ")
+VERSION = input(f"{'*'*100}\nVersion: ")
 
 # Dependencies are automatically detected, but it might need
 # fine tuning.

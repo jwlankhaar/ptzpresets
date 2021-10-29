@@ -10,7 +10,7 @@ from ptzpresets import utils
 DEFAULT_CONFIG_FILE = 'config.json'
 
 APP_TITLE = 'PTZ Presets'
-APP_VERSION = '2.0'
+APP_VERSION = '2.01'
 APP_AUTHOR = 'Lankhaar'
 APP_DIR = Path.cwd()
 STATIC_DIR = APP_DIR / 'static'

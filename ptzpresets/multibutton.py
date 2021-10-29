@@ -147,35 +147,43 @@ class MultiButton(ttk.Button):
         # Resetting the text seems to be sufficient for an update.
 
     @staticmethod
-    def _decode_event_state(state):
-        states = {
-            0x8: '<Button-1>',
-            0xc: '<Control-Button-1>',
-            0xd: '<Control-Shift-Button-1>',
-            0x9: '<Shift-Button-1>',
-            0x108: '<ButtonRelease-1>',
-            0x10c: '<Control-ButtonRelease-1>',
-            0x109: '<Shift-ButtonRelease-1>',
-            0x20108: '<Alt_L-ButtonRelease-1>',
-            0x20008: '<Alt_L-Button-1>',
-            0x20109: '<Alt_L-Shift-ButtonRelease-1>',
-            0x20009: '<Alt_L-Shift-Button-1>',
-            0x2000c: '<Alt-Control-Button-1>',
-            0x2010c: '<Alt-Control-ButtonRelease-1>',
-            0x2000d: '<Alt_R-Shift-Button-1>',
-            0x2010d: '<Alt_R-Shift-ButtonRelease-1>'
-        }
-        # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/event-handlers.html 
-        # (refer to the state value)
-        # http://www.tcl.tk/man/tcl8.6/TkCmd/keysyms.htm
-        return states.get(state, '<Other>')
+    def _decode_event_sequence(event):
+        """Decode the event state and keys to a human-readible event
+        sequence of the form <[modifier]...event type [detail]>.
+        """
+        # Checking the modifiers bit by bit is adapted from the 
+        # tkinter.Event.__repr__ method (in Lib/tkinter/__init__.py).
+        modifiers = ('Shift', 'CapsLock', 'Control',
+                     'Mod1', 'NumLock', 'Mod3', 'Mod4', 'Mod5',
+                     'Button-1', 'Button-2', 'Button-3', 'Button-4', 'Button-5')
+                    # Refined according to the modifier masks table in
+                    # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/event-handlers.html
+        used_modifiers = []
+        used_detail = []
+        # Alt is a special case (https://stackoverflow.com/a/61998948).
+        if event.state & 0x20000:
+            used_modifiers.append('Alt')
+        for i, name in enumerate(modifiers):
+            if event.state & (1 << i) and not name.startswith('Mod'):
+                # Ignore Mod# because the meaning is unclear.
+                if i < 8: # Buttons should not be regarded as modifier.
+                    used_modifiers.append(name)
+                else:   
+                    used_detail.append(name)
+        if event.type.name in ['KeyPress', 'KeyRelease']:
+            used_detail.append(chr(event.keysym_num))
+        
+        sequence_items = [*used_modifiers, event.type.name, *used_detail]
+        if len(sequence_items) == 0:
+            sequence_items.append('Other')
+        return f'<{"-".join(sequence_items)}>'
 
     @staticmethod
     def _add_decoded_event_state(func):
         """Decorate the event with the decoded event state.
         """
         def wrapper(event):
-            event.state_decoded = MultiButton._decode_event_state(event.state)
+            event.state_decoded = MultiButton._decode_event_sequence(event)
             return func(event)
         return wrapper
         
