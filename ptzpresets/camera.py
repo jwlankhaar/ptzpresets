@@ -65,7 +65,8 @@ class Camera:
         self.media_service = self.camera.create_media_service()
         self.profile_token = self.get_default_profile_token()
         self.ptz_service = self.camera.create_ptz_service()
-        self.preset_names_committed = {p['token'] : p['Name'] for p in self.get_presets()}
+        self.preset_names_committed = {p['token'] : p['Name'] 
+                                       for p in self.get_presets()}
         self.preset_names_uncommitted = dict()
         self.preset_names = ChainMap(self.preset_names_uncommitted, 
                                      self.preset_names_committed)
@@ -120,18 +121,17 @@ class Camera:
         return response['Position']
 
     def rename_preset(self, preset_token, new_name, force_commit=False):
-        """Rename a preset by. Because the PTZ service does not 
-        provide a separate rename function, a rename action requires
-        the camera to move to the preset position and save it under
-        the new name. In order to be able to rename presets without 
-        moving the camera, the rename is deferred until the next 
-        time the preset is chosen (unless force_commit=True). In the 
-        meantime, the rename action is stored as an uncommitted 
-        rename.
+        """Rename a preset. Because the PTZ service does not provide a
+        separate rename function, a rename action requires the camera 
+        to move to the preset position and save it under the new name. 
+        In order to be able to rename presets without moving the 
+        camera, the rename is deferred until the next time the preset 
+        is chosen (unless force_commit=True). In the meantime, the 
+        rename action is stored as an uncommitted rename.
         """
         if force_commit:
-            self.goto_preset(preset_token=preset_token)
-            self.set_preset(preset_name=new_name, preset_token=preset_token)
+            self.goto_preset(preset_token)
+            self.set_preset(new_name, preset_token)
         else:
             self.preset_names_uncommitted[preset_token] = new_name
 

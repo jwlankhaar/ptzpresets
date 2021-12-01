@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "PTZ Presets"
-#define MyAppVersion "2.01"
+#define MyAppVersion "2.02"
 #define MyAppPublisher "Jan-Willem Lankhaar"
 #define MyAppURL "github.com/jwlankhaar/ptzpresets"
 #define MyAppExeName "ptzpresets.exe"
