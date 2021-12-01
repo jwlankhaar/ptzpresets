@@ -6,6 +6,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+import tkinter.messagebox
 import webbrowser
 
 from pathlib import Path
@@ -90,8 +91,8 @@ class View(ttk.Frame):
         def wrapper():
             try:
                 callback()
-            except:
-                pass
+            except Exception as error:
+                tkinter.messagebox.showerror(title='Error', message=str(error))
             root.destroy()
         root.protocol('WM_DELETE_WINDOW', wrapper)
 
